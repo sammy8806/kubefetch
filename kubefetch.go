@@ -51,6 +51,12 @@ func getKubeconfig() (*rest.Config, error) {
 	// Get the path to the kubeconfig file
 	kubeconfig := filepath.Join(os.Getenv("HOME"), ".kube", "config")
 
+	// Prioritize the KUBECONFIG envvar if it's there
+	var kubeconfigEnvPath = strings.Trim(os.Getenv("KUBECONFIG"), "*")
+	if len(kubeconfigEnvPath) != 0 {
+		kubeconfig = kubeconfigEnvPath
+	}
+
 	// Build the client config from the kubeconfig file
 	config, err := clientcmd.BuildConfigFromFlags("", kubeconfig)
 	if err != nil {
@@ -135,7 +141,7 @@ func getNodeCount(clientset *kubernetes.Clientset) (int64, int64) {
 	return int64(nodeCount), int64(maxPods)
 }
 
-func getKubeVersion(clientset *kubernetes.Clientset) (string) {
+func getKubeVersion(clientset *kubernetes.Clientset) string {
 
 	// Get the server version
 	version, err := clientset.Discovery().ServerVersion()
@@ -146,7 +152,7 @@ func getKubeVersion(clientset *kubernetes.Clientset) (string) {
 	return version.String()
 }
 
-func getContainerRuntimeInterface(clientset *kubernetes.Clientset) (string) {
+func getContainerRuntimeInterface(clientset *kubernetes.Clientset) string {
 
 	// Retrieve the CRI information from the node status
 	nodeList, err := clientset.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{})
@@ -164,7 +170,7 @@ func getContainerRuntimeInterface(clientset *kubernetes.Clientset) (string) {
 
 }
 
-func getStorage(clientset *kubernetes.Clientset) (string) {
+func getStorage(clientset *kubernetes.Clientset) string {
 
 	// Retrieve the CRI information from the node status
 	storageClassList, err := clientset.StorageV1().StorageClasses().List(context.TODO(), metav1.ListOptions{})
@@ -207,7 +213,7 @@ func getKubernetesEndpointPort(clientset *kubernetes.Clientset) int {
 	return portNumber
 }
 
-func getGitops(clientset *kubernetes.Clientset) (string) {
+func getGitops(clientset *kubernetes.Clientset) string {
 
 	// Retrieve the list of namespaces to find out if Flux or ArgoCD namespaces exist
 	namespaceList, err := clientset.CoreV1().Namespaces().List(context.TODO(), metav1.ListOptions{})
@@ -267,7 +273,7 @@ func isTalos(nodes *corev1.NodeList) bool {
 
 }
 
-func getNodeAge(nodes *corev1.NodeList) (int64) {
+func getNodeAge(nodes *corev1.NodeList) int64 {
 
 	var oldestNode *corev1.Node
 	var oldestNodeAge time.Time
@@ -417,7 +423,7 @@ func printArt() {
 
 	gitopsTool := getGitops(clientset)
 
-	clusterAge:= getNodeAge(nodes)
+	clusterAge := getNodeAge(nodes)
 
 	nodeCount, maxPods := getNodeCount(clientset)
 
