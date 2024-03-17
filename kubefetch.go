@@ -54,7 +54,9 @@ func getKubeconfig() (*rest.Config, error) {
 	// Prioritize the KUBECONFIG envvar if it's there
 	var kubeconfigEnvPath = strings.Trim(os.Getenv("KUBECONFIG"), "*")
 	if len(kubeconfigEnvPath) != 0 {
-		kubeconfig = kubeconfigEnvPath
+		// Split the path by : and use only the first one
+		kubeconfigEnvPaths := strings.Split(kubeconfigEnvPath, ":")
+		kubeconfig = kubeconfigEnvPaths[0]
 	}
 
 	// Build the client config from the kubeconfig file
